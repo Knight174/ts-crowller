@@ -3,11 +3,23 @@
 import superagent from "superagent";
 // https://cheerio.js.org/
 import cheerio from "cheerio";
+// core module
+import path from "path";
+import fs from "fs";
 
 // 定义 Course 接口
 interface Course {
   title: string; // 课程标题
   count: number; // 学习人数
+}
+
+interface CourseResult {
+  time: number; // 时间戳
+  data: Course[];
+}
+
+interface Content {
+  [time: number]: Course[];
 }
 
 class Crowller {
@@ -18,14 +30,22 @@ class Crowller {
     this.initSpiderProcess();
   }
 
+  async initSpiderProcess() {
+    // __dirname: http://nodejs.cn/api/modules.html#__dirname
+    // path.resolve: https://www.jianshu.com/p/439ca3b6d386
+    const filePath = path.resolve(__dirname /* 当前文件路径 */, "../data/course.json"); // 计算 course.json 的绝对路径
+
+    const html = await this.getRawHTML();
+    const CourseInfo = this.getCourseInfo(html);
+    const fileContent = this.generateJSONContent(CourseInfo);
+
+    // fs.writeFileSync: http://nodejs.cn/api/fs/fs_writefilesync_file_data_options.html
+    fs.writeFileSync(filePath, JSON.stringify(fileContent)); // 数据写入
+  }
+
   async getRawHTML() {
     const result = await superagent.get(this.url); // 发送 get 请求
     return result.text;
-  }
-
-  async initSpiderProcess() {
-    const html = await this.getRawHTML();
-    const courseResult = this.getCourseInfo(html);
   }
 
   getCourseInfo(html: string) {
@@ -42,6 +62,19 @@ class Crowller {
       time: new Date().getTime(),
       data: courseInfos,
     };
+  }
+
+  // 生成 json 对象
+  generateJSONContent(CourseInfo: CourseResult) {
+    let fileContent: Content = {}; // 默认值
+    const filePath = path.resolve(__dirname /* 当前文件路径 */, "../data/course.json");
+    // fs.existsSync: http://nodejs.cn/api/fs.html#fsexistssyncpath
+    if (fs.existsSync(filePath)) {
+      // fs.readFileSync: http://nodejs.cn/api/fs/fs_readfilesync_path_options.html
+      fileContent = JSON.parse(fs.readFileSync(filePath, "utf-8")); // 数据读取与赋值
+      fileContent[CourseInfo.time] = CourseInfo.data; // 数据更新
+      return fileContent;
+    }
   }
 }
 
