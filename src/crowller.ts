@@ -15,12 +15,17 @@ class Crowller {
   private url = `http://www.dell-lee.com/typescript/demo.html?secret=${this.secret}`;
 
   constructor() {
-    this.getRawHTML();
+    this.initSpiderProcess();
   }
 
   async getRawHTML() {
     const result = await superagent.get(this.url); // 发送 get 请求
-    this.getCourseInfo(result.text);
+    return result.text;
+  }
+
+  async initSpiderProcess() {
+    const html = await this.getRawHTML();
+    const courseResult = this.getCourseInfo(html);
   }
 
   getCourseInfo(html: string) {
@@ -33,11 +38,10 @@ class Crowller {
       const count = parseInt(descs.eq(1).text().split("：")[1]); // 爬取人数
       courseInfos.push({ title, count });
     });
-    const result = {
+    return {
       time: new Date().getTime(),
       data: courseInfos,
     };
-    // console.log(result);
   }
 }
 
