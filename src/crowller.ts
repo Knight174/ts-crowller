@@ -25,29 +25,19 @@ interface Content {
 class Crowller {
   private secret = "x3b174jsx";
   private url = `http://www.dell-lee.com/typescript/demo.html?secret=${this.secret}`;
+  private filePath = path.resolve(__dirname /* 当前文件路径 */, "../data/course.json");
 
   constructor() {
     this.initSpiderProcess();
   }
 
-  async initSpiderProcess() {
-    // __dirname: http://nodejs.cn/api/modules.html#__dirname
-    // path.resolve: https://www.jianshu.com/p/439ca3b6d386
-    const filePath = path.resolve(__dirname /* 当前文件路径 */, "../data/course.json"); // 计算 course.json 的绝对路径
-
-    const html = await this.getRawHTML();
-    const CourseInfo = this.getCourseInfo(html);
-    const fileContent = this.generateJSONContent(CourseInfo);
-
-    // fs.writeFileSync: http://nodejs.cn/api/fs/fs_writefilesync_file_data_options.html
-    fs.writeFileSync(filePath, JSON.stringify(fileContent)); // 数据写入
-  }
-
+  // 获取网页内容
   async getRawHTML() {
     const result = await superagent.get(this.url); // 发送 get 请求
     return result.text;
   }
 
+  // 获取课程信息
   getCourseInfo(html: string) {
     const $ = cheerio.load(html); // 获取源网页整体内容
     const courseItems = $(".course-item"); // 拿到选择器为 .course-item 的 dom 内容
@@ -64,17 +54,29 @@ class Crowller {
     };
   }
 
-  // 生成 json 对象
+  // 分析并生成 json 对象
   generateJSONContent(CourseInfo: CourseResult) {
     let fileContent: Content = {}; // 默认值
-    const filePath = path.resolve(__dirname /* 当前文件路径 */, "../data/course.json");
     // fs.existsSync: http://nodejs.cn/api/fs.html#fsexistssyncpath
-    if (fs.existsSync(filePath)) {
+    if (fs.existsSync(this.filePath)) {
       // fs.readFileSync: http://nodejs.cn/api/fs/fs_readfilesync_path_options.html
-      fileContent = JSON.parse(fs.readFileSync(filePath, "utf-8")); // 数据读取与赋值
+      fileContent = JSON.parse(fs.readFileSync(this.filePath, "utf-8")); // 数据读取与赋值
       fileContent[CourseInfo.time] = CourseInfo.data; // 数据更新
       return fileContent;
     }
+  }
+
+  // 写入文件
+  writeFile(content: string) {
+    fs.writeFileSync(this.filePath, content);
+  }
+
+  // 主函数
+  async initSpiderProcess() {
+    const html = await this.getRawHTML();
+    const courseInfo = this.getCourseInfo(html);
+    const fileContent = this.generateJSONContent(courseInfo);
+    this.writeFile(JSON.stringify(fileContent));
   }
 }
 
