@@ -44,6 +44,6 @@ class Crowller {
 const secret = "x3b174jsx";
 const url = `http://www.dell-lee.com/typescript/demo.html?secret=${secret}`;
 
-const analyzer = new ContentAnalyzer();
+const analyzer = ContentAnalyzer.getInstance();
 // const analyzer2 = new HTMLAnalyzer();
 new Crowller(url, analyzer);

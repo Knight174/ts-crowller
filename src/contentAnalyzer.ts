@@ -19,6 +19,16 @@ interface Content {
 
 // 类使用 implements 来使用接口 class MyClassName implements MyInterfaceName {}
 export default class ContentAnalyzer implements Analyzer {
+  // static: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Classes/static
+  // 不能在类的实例上调用静态方法，而应该通过类本身调用。
+  private static instance: ContentAnalyzer;
+  static getInstance() {
+    if (!ContentAnalyzer.instance) {
+      ContentAnalyzer.instance = new ContentAnalyzer();
+    }
+    return ContentAnalyzer.instance;
+  }
+
   // 获取课程信息
   private getCourseInfo(html: string) {
     const $ = cheerio.load(html); // 获取源网页整体内容
@@ -51,4 +61,9 @@ export default class ContentAnalyzer implements Analyzer {
     const fileContent = this.generateJSONContent(courseInfo, filePath);
     return JSON.stringify(fileContent);
   }
+
+  private constructor() {}
 }
+
+// 单例模式
+// 不可以让外部实例化，即 constructor 不能调用
