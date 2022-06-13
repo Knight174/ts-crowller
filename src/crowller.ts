@@ -47,3 +47,5 @@ const url = `http://www.dell-lee.com/typescript/demo.html?secret=${secret}`;
 const analyzer = ContentAnalyzer.getInstance();
 // const analyzer2 = new HTMLAnalyzer();
 new Crowller(url, analyzer);
+
+console.log(121);
